@@ -13,8 +13,8 @@ class Http(models.AbstractModel):
         config = self.env["ir.config_parameter"].sudo()
         result.update(
             {
-                "leaflet.tile_url": config.get_param("leaflet.tile_url", default=""),
-                "leaflet.copyright": config.get_param("leaflet.copyright", default=""),
+                "leaflet.tile_url": config.get_str("leaflet.tile_url", default=""),
+                "leaflet.copyright": config.get_str("leaflet.copyright", default=""),
             }
         )
         return result
