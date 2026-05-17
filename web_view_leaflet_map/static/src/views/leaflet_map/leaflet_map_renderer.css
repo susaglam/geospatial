@@ -15,6 +15,91 @@
     width: 100%;
 }
 
+/* Sidebar list + search */
+.o_leaflet_sidebar {
+    width: 280px;
+    min-width: 280px;
+    max-width: 320px;
+    border-right: 1px solid var(--bs-border-color, #dee2e6);
+    background: var(--bs-body-bg, #fff);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.o_leaflet_sidebar_list {
+    flex: 1 1 auto;
+    overflow-y: auto;
+}
+
+.o_leaflet_sidebar_card {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--bs-border-color-translucent, #e9ecef);
+    cursor: pointer;
+    transition: background-color 0.1s;
+}
+
+.o_leaflet_sidebar_card:hover {
+    background-color: var(--bs-secondary-bg, #f1f3f5);
+}
+
+.o_leaflet_sidebar_card.active {
+    background-color: var(--bs-primary-bg-subtle, #cfe2ff);
+    border-left: 3px solid var(--bs-primary, #0d6efd);
+    padding-left: 9px;
+}
+
+.o_leaflet_card_title {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--bs-body-color, #212529);
+    line-height: 1.2;
+}
+
+.o_leaflet_card_subtitle {
+    font-size: 0.78rem;
+    color: var(--bs-secondary-color, #6c757d);
+    margin-top: 2px;
+}
+
+.o_leaflet_card_warning {
+    margin-top: 4px;
+    font-size: 0.72rem;
+    color: var(--bs-warning-text-emphasis, #997404);
+}
+
+/* Rich popup */
+.o_leaflet_popup {
+    min-width: 200px;
+    max-width: 320px;
+    font-size: 0.85rem;
+}
+
+.o_leaflet_popup_title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 4px;
+}
+
+.o_leaflet_popup_address {
+    color: var(--bs-secondary-color, #6c757d);
+    margin-bottom: 8px;
+}
+
+.o_leaflet_popup_row {
+    padding: 2px 0;
+    border-top: 1px solid var(--bs-border-color-translucent, #e9ecef);
+}
+
+.o_leaflet_popup_row:first-of-type {
+    border-top: none;
+}
+
+.o_leaflet_popup_label {
+    font-weight: 600;
+    color: var(--bs-secondary-color, #6c757d);
+}
+
 .o_map_selector {
     cursor: pointer;
 }

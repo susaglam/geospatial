@@ -2,8 +2,48 @@
 <templates xml:space="preserve">
 
     <t t-name="web_view_leaflet_map.MapRenderer" owl="1">
-        <div class="o_leaflet_main_container h-100" t-ref="root">
-            <div t-ref="mapContainer" class="o_leaflet_map_container h-100" />
+        <div class="o_leaflet_main_container h-100 d-flex" t-ref="root">
+            <div class="o_leaflet_sidebar" t-if="showSidebar">
+                <div class="o_leaflet_sidebar_search p-2 border-bottom">
+                    <input
+                        type="text"
+                        class="form-control form-control-sm"
+                        placeholder="Search locations..."
+                        t-model="state.searchQuery"
+                        t-on-input="onSearchInput"
+                    />
+                </div>
+                <div class="o_leaflet_sidebar_list">
+                    <t t-foreach="filteredRecords" t-as="record" t-key="record.id">
+                        <div
+                            class="o_leaflet_sidebar_card"
+                            t-att-class="{ active: state.selectedId === record.id }"
+                            t-on-click="() =&gt; this.onSelectRecord(record)"
+                        >
+                            <div class="o_leaflet_card_title">
+                                <t t-esc="record[this.fieldTitle] || record.display_name" />
+                            </div>
+                            <div t-if="record[this.fieldAddress]" class="o_leaflet_card_subtitle">
+                                <t t-esc="record[this.fieldAddress]" />
+                            </div>
+                            <div t-if="!record[this.fieldLatitude] || !record[this.fieldLongitude]" class="o_leaflet_card_warning">
+                                <i class="fa fa-exclamation-triangle" /> not geocoded
+                            </div>
+                        </div>
+                    </t>
+                    <div t-if="filteredRecords.length === 0" class="o_leaflet_sidebar_empty p-3 text-muted">
+                        <t t-if="state.searchQuery">No matches.</t>
+                        <t t-else="">No locations to display.</t>
+                    </div>
+                </div>
+                <div class="o_leaflet_sidebar_footer p-2 border-top small text-muted">
+                    <t t-esc="filteredRecords.length" />
+                    of
+                    <t t-esc="(this.records || []).length" />
+                    locations
+                </div>
+            </div>
+            <div t-ref="mapContainer" class="o_leaflet_map_container h-100 flex-grow-1" />
         </div>
     </t>
 
