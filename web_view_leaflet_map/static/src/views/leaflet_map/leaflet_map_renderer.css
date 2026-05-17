@@ -3,11 +3,10 @@
 */
 
 .o_leaflet_main_container {
-    display: flex;
-    align-content: stretch;
-    overflow-x: visible;
+    position: relative;
     height: 100%;
     width: 100%;
+    overflow: hidden;
 }
 
 .o_leaflet_map_container {
@@ -15,21 +14,89 @@
     width: 100%;
 }
 
-/* Sidebar list + search */
-.o_leaflet_sidebar {
+/* Floating toggle button (open/close sidebar) */
+.o_leaflet_sidebar_toggle {
+    position: absolute;
+    top: 12px;
+    left: 56px; /* push right of leaflet zoom controls (default 36px wide + 10px gap) */
+    z-index: 1000;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    background: white;
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.o_leaflet_sidebar_toggle:hover {
+    background-color: var(--bs-secondary-bg, #f1f3f5);
+}
+
+/* Floating overlay sidebar — compact card on top of the map */
+.o_leaflet_sidebar_overlay {
+    position: absolute;
+    top: 56px; /* below toggle button */
+    left: 12px;
+    z-index: 1000;
     width: 280px;
-    min-width: 280px;
-    max-width: 320px;
-    border-right: 1px solid var(--bs-border-color, #dee2e6);
+    max-width: calc(100% - 24px);
+    max-height: calc(100% - 80px);
     background: var(--bs-body-bg, #fff);
+    border: 1px solid var(--bs-border-color, #dee2e6);
+    border-radius: 8px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
 }
 
+.o_leaflet_sidebar_header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--bs-border-color-translucent, #e9ecef);
+    background: var(--bs-tertiary-bg, #f8f9fa);
+}
+
+.o_leaflet_sidebar_header_title {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--bs-body-color, #212529);
+}
+
+.o_leaflet_sidebar_close {
+    padding: 0.25rem;
+    font-size: 0.75rem;
+}
+
+.o_leaflet_sidebar_search {
+    position: relative;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--bs-border-color-translucent, #e9ecef);
+}
+
+.o_leaflet_sidebar_search input {
+    padding-left: 28px;
+}
+
+.o_leaflet_sidebar_search_icon {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--bs-secondary-color, #6c757d);
+    font-size: 0.8rem;
+    pointer-events: none;
+}
+
 .o_leaflet_sidebar_list {
     flex: 1 1 auto;
     overflow-y: auto;
+    max-height: 360px;
 }
 
 .o_leaflet_sidebar_card {
@@ -51,21 +118,37 @@
 
 .o_leaflet_card_title {
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: var(--bs-body-color, #212529);
     line-height: 1.2;
 }
 
 .o_leaflet_card_subtitle {
-    font-size: 0.78rem;
+    font-size: 0.75rem;
     color: var(--bs-secondary-color, #6c757d);
     margin-top: 2px;
 }
 
 .o_leaflet_card_warning {
     margin-top: 4px;
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     color: var(--bs-warning-text-emphasis, #997404);
+}
+
+.o_leaflet_sidebar_empty {
+    padding: 16px 12px;
+    color: var(--bs-secondary-color, #6c757d);
+    font-size: 0.8rem;
+    text-align: center;
+}
+
+.o_leaflet_sidebar_footer {
+    padding: 6px 12px;
+    border-top: 1px solid var(--bs-border-color-translucent, #e9ecef);
+    background: var(--bs-tertiary-bg, #f8f9fa);
+    font-size: 0.72rem;
+    color: var(--bs-secondary-color, #6c757d);
+    text-align: center;
 }
 
 /* Rich popup */
@@ -105,6 +188,34 @@
     color: var(--bs-body-color, #495057);
     margin-bottom: 8px;
     padding: 4px 0;
+}
+
+.o_leaflet_popup_description {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    background: var(--bs-tertiary-bg, #f8f9fa);
+    border-left: 3px solid var(--bs-primary, #0d6efd);
+    border-radius: 4px;
+}
+
+.o_leaflet_popup_description_icon {
+    color: var(--bs-primary, #0d6efd);
+    margin-top: 3px;
+    flex-shrink: 0;
+    font-size: 0.8rem;
+}
+
+.o_leaflet_popup_description_text {
+    flex: 1 1 auto;
+    font-style: italic;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: var(--bs-body-color, #495057);
+    word-break: break-word;
+    white-space: pre-line;
 }
 
 .o_leaflet_popup_icon {

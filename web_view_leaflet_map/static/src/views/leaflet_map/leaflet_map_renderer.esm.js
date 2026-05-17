@@ -28,6 +28,7 @@ export class MapRenderer extends Component {
         this.fieldLongitude = archAttrs.field_longitude?.value;
         this.fieldTitle = archAttrs.field_title?.value;
         this.fieldAddress = archAttrs.field_address?.value;
+        this.fieldDescription = archAttrs.field_description?.value;
         this.fieldMarkerIconImage = archAttrs.field_marker_icon_image?.value;
 
         // Comma-separated list of extra fields shown in the popup
@@ -36,8 +37,11 @@ export class MapRenderer extends Component {
             ? extra.split(",").map((s) => s.trim()).filter(Boolean)
             : [];
 
-        // Sidebar can be turned off per-view via show_sidebar="0"
-        this.showSidebar = archAttrs.show_sidebar?.value !== "0";
+        // Sidebar is a floating overlay; arch attr only sets initial open/closed.
+        this.sidebarEnabled = archAttrs.show_sidebar?.value !== "0";
+
+        // Default layer falls back to arch attr "default_layer" or OSM.
+        this.archDefaultLayer = archAttrs.default_layer?.value || "OpenStreetMap";
 
         this.markerIconSizeX = parseInt(archAttrs.marker_icon_size_x?.value, 10) || 64;
         this.markerIconSizeY = parseInt(archAttrs.marker_icon_size_y?.value, 10) || 64;
@@ -49,11 +53,15 @@ export class MapRenderer extends Component {
         this.state = useState({
             searchQuery: "",
             selectedId: null,
+            sidebarOpen: this.sidebarEnabled,
         });
 
         this.leafletMap = null;
         this.mainLayer = null;
         this.markersById = {};
+        this.baseLayers = {};
+        // Non-reactive — keeping outside of useState so re-renders don't loop.
+        this.activeLayerName = this.archDefaultLayer;
 
         onWillStart(async () => {
             await this.initDefaultPosition();
@@ -66,10 +74,9 @@ export class MapRenderer extends Component {
         });
 
         onPatched(() => {
-            if (this.leafletMap) {
-                // Resize map when sidebar layout adjusts
-                this.leafletMap.invalidateSize();
-            }
+            if (!this.leafletMap) return;
+            this._ensureActiveBaseLayer();
+            this.leafletMap.invalidateSize();
         });
     }
 
@@ -83,6 +90,10 @@ export class MapRenderer extends Component {
                 return typeof v === "string" && v.toLowerCase().includes(q);
             });
         });
+    }
+
+    onToggleSidebar() {
+        this.state.sidebarOpen = !this.state.sidebarOpen;
     }
 
     onSearchInput() {
@@ -129,6 +140,7 @@ export class MapRenderer extends Component {
         if (this.fieldLongitude) fields.add(this.fieldLongitude);
         if (this.fieldTitle) fields.add(this.fieldTitle);
         if (this.fieldAddress) fields.add(this.fieldAddress);
+        if (this.fieldDescription) fields.add(this.fieldDescription);
         if (this.fieldMarkerIconImage) fields.add(this.fieldMarkerIconImage);
         for (const f of this.fieldExtraInfo) fields.add(f);
         return Array.from(fields);
@@ -141,6 +153,12 @@ export class MapRenderer extends Component {
             [this.props.resModel]
         );
         this.defaultLatLng = L.latLng(result.lat, result.lng);
+        if (result.default_zoom) {
+            this.defaultZoom = result.default_zoom;
+        }
+        if (result.default_layer) {
+            this.activeLayerName = result.default_layer;
+        }
     }
 
     initMap() {
@@ -182,20 +200,52 @@ export class MapRenderer extends Component {
             {maxZoom: 20, subdomains: ["mt0", "mt1", "mt2", "mt3"], attribution: "&copy; Google"}
         );
 
-        osm.addTo(this.leafletMap);
+        this.baseLayers = {
+            "OpenStreetMap": osm,
+            "OpenTopoMap": osmTopo,
+            "Google Streets": googleStreets,
+            "Google Satellite": googleSatellite,
+            "Google Hybrid": googleHybrid,
+        };
+
+        // Start on the configured default layer, falling back to OSM.
+        const initial = this.baseLayers[this.activeLayerName] || osm;
+        if (!this.baseLayers[this.activeLayerName]) {
+            this.activeLayerName = "OpenStreetMap";
+        }
+        initial.addTo(this.leafletMap);
+
         L.control
             .layers(
-                {
-                    "OpenStreetMap": osm,
-                    "OpenTopoMap": osmTopo,
-                    "Google Streets": googleStreets,
-                    "Google Satellite": googleSatellite,
-                    "Google Hybrid": googleHybrid,
-                },
+                this.baseLayers,
                 {},
                 {position: "topright", collapsed: true}
             )
             .addTo(this.leafletMap);
+
+        this.leafletMap.on("baselayerchange", (e) => {
+            this.activeLayerName = e.name;
+        });
+    }
+
+    /**
+     * Defensive: OWL re-renders should not touch the Leaflet DOM, but in
+     * practice a state mutation (e.g. selecting a sidebar record) sometimes
+     * causes the active base layer to revert to the first one added.
+     * On every patch, verify the layer the user last picked is still on
+     * the map; if not, remove any other base and re-attach the expected one.
+     */
+    _ensureActiveBaseLayer() {
+        const expected = this.baseLayers[this.activeLayerName];
+        if (!expected || this.leafletMap.hasLayer(expected)) {
+            return;
+        }
+        for (const [name, layer] of Object.entries(this.baseLayers)) {
+            if (name !== this.activeLayerName && this.leafletMap.hasLayer(layer)) {
+                this.leafletMap.removeLayer(layer);
+            }
+        }
+        expected.addTo(this.leafletMap);
     }
 
     renderMarkers() {
@@ -232,7 +282,7 @@ export class MapRenderer extends Component {
 
         const markerOptions = this.prepareMarkerOptions(record);
         const marker = L.marker(latlng, markerOptions);
-        const popup = L.popup({maxWidth: 320}).setContent(this.preparePopUpData(record));
+        const popup = L.popup({maxWidth: 340}).setContent(this.preparePopUpData(record));
 
         marker.bindPopup(popup).on("popupopen", () => {
             this.state.selectedId = record.id;
@@ -275,6 +325,9 @@ export class MapRenderer extends Component {
     preparePopUpData(record) {
         const title = this._escapeHtml(record[this.fieldTitle] || record.display_name || "");
         const address = this._escapeHtml(record[this.fieldAddress] || "");
+        const description = this.fieldDescription
+            ? this._escapeHtml(record[this.fieldDescription] || "")
+            : "";
         const lat = record[this.fieldLatitude];
         const lng = record[this.fieldLongitude];
 
@@ -329,6 +382,13 @@ export class MapRenderer extends Component {
             </div>
         ` : "";
 
+        const descriptionBlock = description ? `
+            <div class='o_leaflet_popup_description'>
+                <i class='fa fa-quote-left o_leaflet_popup_description_icon'></i>
+                <div class='o_leaflet_popup_description_text'>${description}</div>
+            </div>
+        ` : "";
+
         const bodyBlock = extraRows
             ? `<div class='o_leaflet_popup_body'>${extraRows}</div>`
             : "";
@@ -340,6 +400,7 @@ export class MapRenderer extends Component {
                     ${coordsRow}
                 </div>
                 ${addressBlock}
+                ${descriptionBlock}
                 ${bodyBlock}
                 <div class='o_leaflet_popup_footer'>
                     <a href='#' class='o_map_selector btn btn-primary btn-sm w-100' data-res-id='${record.id}'>

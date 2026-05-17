@@ -2,9 +2,40 @@
 <templates xml:space="preserve">
 
     <t t-name="web_view_leaflet_map.MapRenderer" owl="1">
-        <div class="o_leaflet_main_container h-100 d-flex" t-ref="root">
-            <div class="o_leaflet_sidebar" t-if="showSidebar">
-                <div class="o_leaflet_sidebar_search p-2 border-bottom">
+        <div class="o_leaflet_main_container" t-ref="root">
+            <div t-ref="mapContainer" class="o_leaflet_map_container" />
+
+            <!-- Floating toggle button (shown when sidebar is enabled) -->
+            <button
+                t-if="sidebarEnabled"
+                type="button"
+                class="o_leaflet_sidebar_toggle btn btn-light shadow-sm"
+                t-on-click="onToggleSidebar"
+                t-att-title="state.sidebarOpen ? 'Hide locations panel' : 'Show locations panel'"
+            >
+                <i t-att-class="state.sidebarOpen ? 'fa fa-chevron-left' : 'fa fa-list-ul'" />
+                <t t-if="!state.sidebarOpen" t-esc="(records || []).length" />
+            </button>
+
+            <!-- Floating overlay sidebar (compact card, not full-height column) -->
+            <div
+                class="o_leaflet_sidebar_overlay shadow"
+                t-if="sidebarEnabled and state.sidebarOpen"
+            >
+                <div class="o_leaflet_sidebar_header">
+                    <span class="o_leaflet_sidebar_header_title">
+                        <i class="fa fa-map-pin me-2" />
+                        Locations
+                    </span>
+                    <button
+                        type="button"
+                        class="btn-close o_leaflet_sidebar_close"
+                        t-on-click="onToggleSidebar"
+                        title="Hide panel"
+                    />
+                </div>
+                <div class="o_leaflet_sidebar_search">
+                    <i class="fa fa-search o_leaflet_sidebar_search_icon" />
                     <input
                         type="text"
                         class="form-control form-control-sm"
@@ -31,19 +62,18 @@
                             </div>
                         </div>
                     </t>
-                    <div t-if="filteredRecords.length === 0" class="o_leaflet_sidebar_empty p-3 text-muted">
+                    <div t-if="filteredRecords.length === 0" class="o_leaflet_sidebar_empty">
                         <t t-if="state.searchQuery">No matches.</t>
                         <t t-else="">No locations to display.</t>
                     </div>
                 </div>
-                <div class="o_leaflet_sidebar_footer p-2 border-top small text-muted">
+                <div class="o_leaflet_sidebar_footer">
                     <t t-esc="filteredRecords.length" />
                     of
                     <t t-esc="(this.records || []).length" />
                     locations
                 </div>
             </div>
-            <div t-ref="mapContainer" class="o_leaflet_map_container h-100 flex-grow-1" />
         </div>
     </t>
 
