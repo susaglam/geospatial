@@ -23,6 +23,6 @@ License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
         forcecreate="True"
     >
         <field name="key">leaflet.tile_url</field>
-        <field name="value">False</field>
+        <field name="value">https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png</field>
     </record>
 </odoo>
