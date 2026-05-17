@@ -5,7 +5,7 @@
 {
     "name": "Leaflet Map View (OpenStreetMap)",
     "summary": "Add new 'leaflet_map' view, to display markers.",
-    "version": "saas~19.3.1.1.2",
+    "version": "saas~19.3.1.1.3",
     "author": "GRAP, Odoo Community Association (OCA)",
     "maintainers": ["legalsylvain"],
     "website": "https://github.com/OCA/geospatial",

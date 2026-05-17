@@ -275,24 +275,77 @@ export class MapRenderer extends Component {
     preparePopUpData(record) {
         const title = this._escapeHtml(record[this.fieldTitle] || record.display_name || "");
         const address = this._escapeHtml(record[this.fieldAddress] || "");
+        const lat = record[this.fieldLatitude];
+        const lng = record[this.fieldLongitude];
+
+        const fieldIcons = {
+            city: "fa-building",
+            zip: "fa-envelope-o",
+            street: "fa-road",
+            street2: "fa-road",
+            phone: "fa-phone",
+            mobile: "fa-mobile",
+            email: "fa-envelope",
+            owner_id: "fa-user",
+            partner_id: "fa-user-circle",
+            territory_id: "fa-map-o",
+            team_id: "fa-users",
+            branch_id: "fa-sitemap",
+            state_id: "fa-flag",
+            country_id: "fa-globe",
+            tag_ids: "fa-tags",
+        };
 
         let extraRows = "";
         for (const f of this.fieldExtraInfo) {
             const v = record[f];
             if (v === false || v === null || v === undefined || v === "") continue;
             const label = this._humanizeFieldName(f);
-            const display = Array.isArray(v) && v.length === 2 ? this._escapeHtml(v[1]) : this._escapeHtml(String(v));
-            extraRows += `<div class='o_leaflet_popup_row'><span class='o_leaflet_popup_label'>${label}:</span> ${display}</div>`;
+            const display = Array.isArray(v) && v.length === 2
+                ? this._escapeHtml(v[1])
+                : this._escapeHtml(String(v));
+            const icon = fieldIcons[f] || "fa-info-circle";
+            extraRows += `
+                <div class='o_leaflet_popup_row'>
+                    <i class='fa ${icon} o_leaflet_popup_icon'></i>
+                    <div class='o_leaflet_popup_row_body'>
+                        <div class='o_leaflet_popup_label'>${label}</div>
+                        <div class='o_leaflet_popup_value'>${display}</div>
+                    </div>
+                </div>
+            `;
         }
+
+        const coordsRow = (lat && lng) ? `
+            <div class='o_leaflet_popup_coords'>
+                <i class='fa fa-crosshairs me-1'></i>${Number(lat).toFixed(5)}, ${Number(lng).toFixed(5)}
+            </div>
+        ` : "";
+
+        const addressBlock = address ? `
+            <div class='o_leaflet_popup_address'>
+                <i class='fa fa-map-marker o_leaflet_popup_icon'></i>
+                <span>${address}</span>
+            </div>
+        ` : "";
+
+        const bodyBlock = extraRows
+            ? `<div class='o_leaflet_popup_body'>${extraRows}</div>`
+            : "";
 
         return `
             <div class='o_leaflet_popup' data-res-id='${record.id}'>
-                <div class='o_leaflet_popup_title'>${title}</div>
-                ${address ? `<div class='o_leaflet_popup_address'>${address}</div>` : ""}
-                ${extraRows}
-                <a href='#' class='o_map_selector btn btn-primary btn-sm mt-2' data-res-id='${record.id}'>
-                    Open <i class='fa fa-arrow-right ms-1'/>
-                </a>
+                <div class='o_leaflet_popup_header'>
+                    <div class='o_leaflet_popup_title'>${title}</div>
+                    ${coordsRow}
+                </div>
+                ${addressBlock}
+                ${bodyBlock}
+                <div class='o_leaflet_popup_footer'>
+                    <a href='#' class='o_map_selector btn btn-primary btn-sm w-100' data-res-id='${record.id}'>
+                        <i class='fa fa-external-link me-1'></i>Open record
+                    </a>
+                </div>
             </div>
         `;
     }
