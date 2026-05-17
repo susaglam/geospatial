@@ -6,7 +6,8 @@ import logging
 
 from odoo import _, api, models
 from odoo.exceptions import MissingError, UserError
-from odoo.osv.expression import AND
+from odoo.fields import Domain
+AND = Domain.AND
 
 from .. import fields as geo_fields
 

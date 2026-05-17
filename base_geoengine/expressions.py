@@ -5,9 +5,12 @@ import random
 import string
 
 from odoo.models import BaseModel
-from odoo.osv import expression
-from odoo.osv.expression import TERM_OPERATORS
-from odoo.tools import SQL, Query
+from odoo.fields import Domain
+from odoo.fields import Domain as expression
+
+TERM_OPERATORS = ('=', '!=', '<=', '<', '>', '>=', '=?', '=like', '=ilike', 'like', 'not like', 'ilike', 'not ilike', 'in', 'not in', 'child_of', 'parent_of', 'any', 'not any')
+from odoo.tools import SQL
+from odoo.orm.query import Query
 
 from .fields import GeoField
 from .geo_operators import GeoOperator
